@@ -6,38 +6,90 @@ import { Organization } from "@/types";
 
 export async function addTeamAction(formData: FormData) {
   const name = formData.get("name") as string;
-  const sport = formData.get("sport") as string;
+  const sportId = formData.get("sportId") as string;
   const ageGroup = formData.get("ageGroup") as string;
+  const organizationId = formData.get("organizationId") as string;
 
-  if (!name || !sport || !ageGroup) {
+  if (!name || !sportId || !ageGroup || !organizationId) {
     throw new Error("Missing required fields");
   }
 
-  store.addTeam({
+  const newTeam = store.addTeam({
     name,
-    sport,
+    sportId,
     ageGroup,
+    organizationId,
   });
 
   revalidatePath("/teams");
+  revalidatePath(`/admin/organizations/${organizationId}`);
+  revalidatePath(`/admin/organizations/${organizationId}/teams`);
+  
+  return newTeam;
 }
 
-export async function addPersonAction(formData: FormData) {
-  const name = formData.get("name") as string;
-  const role = formData.get("role") as "Player" | "Coach" | "Staff";
-  const teamId = formData.get("teamId") as string;
+export async function updateTeamAction(id: string, data: Partial<import("@/types").Team>) {
+  const updatedTeam = store.updateTeam(id, data);
+  if (updatedTeam) {
+    revalidatePath(`/admin/organizations/${updatedTeam.organizationId}/teams/${id}`);
+    revalidatePath(`/admin/organizations/${updatedTeam.organizationId}/teams`);
+    revalidatePath(`/admin/organizations/${updatedTeam.organizationId}`);
+  }
+  return updatedTeam;
+}
 
-  if (!name || !role || !teamId) {
+export async function addPersonAction(name: string, roleId: string, teamId: string) {
+  if (!name || !roleId || !teamId) {
     throw new Error("Missing required fields");
   }
 
-  store.addPerson({
+  // 1. Create Person
+  const newPerson = store.addPerson({
     name,
-    role,
-    teamId,
   });
 
+  // 2. Create Membership
+  store.addTeamMember(newPerson.id, teamId, roleId);
+
+  const team = store.getTeam(teamId);
+  if (team) {
+    revalidatePath(`/admin/organizations/${team.organizationId}/teams/${teamId}/players`);
+    revalidatePath(`/teams/${teamId}`);
+  }
+  revalidatePath(`/admin/organizations`); // Revalidate generally to be safe
+}
+
+export async function addPersonFromForm(formData: FormData) {
+  const name = formData.get("name") as string;
+  const roleId = formData.get("roleId") as string;
+  const teamId = formData.get("teamId") as string;
+
+  if (!name || !roleId || !teamId) {
+    throw new Error("Missing required fields");
+  }
+
+  // 1. Create Person
+  const newPerson = store.addPerson({
+    name,
+  });
+
+  // 2. Create Membership
+  // 2. Create Membership
+  store.addTeamMember(newPerson.id, teamId, roleId);
+
   revalidatePath(`/teams/${teamId}`);
+  revalidatePath(`/admin/organizations`);
+}
+
+export async function addTeamMemberAction(personId: string, teamId: string, roleId: string) {
+    store.addTeamMember(personId, teamId, roleId);
+    revalidatePath(`/teams/${teamId}`);
+}
+
+export async function removeTeamMemberAction(membershipId: string, teamId: string) {
+    store.removeTeamMember(membershipId);
+    revalidatePath(`/teams/${teamId}`);
+    revalidatePath(`/admin/organizations`);
 }
 
 export async function addVenueAction(formData: FormData) {

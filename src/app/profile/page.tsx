@@ -7,13 +7,13 @@ import { MetalButton } from '@/components/ui/MetalButton';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ImageUpload } from '@/components/ui/ImageUpload';
-import { useTheme } from 'next-themes';
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 
 export default function ProfilePage() {
   const { user, isAuthenticated, updateProfile } = useAuth();
   const router = useRouter();
-  const { theme } = useTheme();
+  const { isDark, metalVariant, primaryColor } = useThemeColors();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -21,11 +21,7 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  const isDark = theme?.includes('dark');
-  const metalVariant = isDark ? 'silver-dark' : 'silver';
-  const primaryColor = theme?.includes('orange') 
-    ? 'hsl(24, 95%, 53%)' 
-    : 'hsl(142, 70%, 50%)';
+
 
   useEffect(() => {
     if (!isAuthenticated) {

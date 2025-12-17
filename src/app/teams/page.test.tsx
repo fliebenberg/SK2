@@ -6,6 +6,7 @@ import { store } from '@/lib/store';
 jest.mock('@/lib/store', () => ({
   store: {
     getTeams: jest.fn(),
+    getSport: jest.fn(),
   },
 }));
 
@@ -19,15 +20,21 @@ jest.mock('next/link', () => {
 describe('TeamsPage', () => {
   it('renders a list of teams', () => {
     (store.getTeams as jest.Mock).mockReturnValue([
-      { id: '1', name: 'Team A', sport: 'Soccer', ageGroup: 'U19' },
-      { id: '2', name: 'Team B', sport: 'Rugby', ageGroup: 'U16' },
+      { id: '1', name: 'Team A', sportId: 'sport-soccer', ageGroup: 'U19' },
+      { id: '2', name: 'Team B', sportId: 'sport-rugby', ageGroup: 'U16' },
     ]);
+    (store.getSport as jest.Mock).mockImplementation((id) => {
+      if (id === 'sport-soccer') return { id: 'sport-soccer', name: 'Soccer' };
+      if (id === 'sport-rugby') return { id: 'sport-rugby', name: 'Rugby' };
+      return undefined;
+    });
 
     render(<TeamsPage />);
 
     expect(screen.getByText('Team A')).toBeInTheDocument();
     expect(screen.getByText('Team B')).toBeInTheDocument();
-    expect(screen.getByText('Soccer • U19')).toBeInTheDocument();
+    expect(screen.getByText(/Soccer/)).toBeInTheDocument();
+    expect(screen.getByText(/U19/)).toBeInTheDocument();
   });
 
   it('renders empty state when no teams exist', () => {

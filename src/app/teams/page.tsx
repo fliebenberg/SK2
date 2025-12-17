@@ -47,7 +47,7 @@ export default function TeamsPage() {
               </div>
               
               <div className="text-sm text-muted-foreground mb-6">
-                <span className="font-semibold text-foreground">{team.sport}</span> • {team.ageGroup}
+                <span className="font-semibold text-foreground">{store.getSport(team.sportId)?.name}</span> • {team.ageGroup}
               </div>
 
               <Link href={`/teams/${team.id}`} className="block">

@@ -41,7 +41,7 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
           <div className="flex flex-col md:flex-row justify-between items-center gap-8">
             <div className="text-center flex-1">
               <h2 className="text-2xl font-bold mb-2">{homeTeam?.name}</h2>
-              <div className="text-sm text-muted-foreground">{homeTeam?.sport}</div>
+              <div className="text-sm text-muted-foreground">{store.getSport(homeTeam?.sportId!)?.name}</div>
             </div>
             
             <div className="flex items-center gap-8">
@@ -52,7 +52,7 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
 
             <div className="text-center flex-1">
               <h2 className="text-2xl font-bold mb-2">{awayTeam?.name}</h2>
-              <div className="text-sm text-muted-foreground">{awayTeam?.sport}</div>
+              <div className="text-sm text-muted-foreground">{store.getSport(awayTeam?.sportId!)?.name}</div>
             </div>
           </div>
         </CardContent>

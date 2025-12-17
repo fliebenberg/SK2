@@ -4,8 +4,23 @@ export interface Organization {
   logo?: string;
   primaryColor?: string;
   secondaryColor?: string;
-  sportTypes: string[];
+  supportedSportIds: string[];
   shortName?: string;
+}
+
+export interface Sport {
+  id: string;
+  name: string;
+}
+
+export interface TeamRole {
+  id: string;
+  name: string;
+}
+
+export interface OrganizationRole {
+  id: string;
+  name: string;
 }
 
 export interface Venue {
@@ -19,15 +34,32 @@ export interface Team {
   id: string;
   name: string;
   ageGroup: string;
-  sport: string;
+  sportId: string;
   organizationId: string;
+  isActive?: boolean;
 }
 
 export interface Person {
   id: string;
   name: string;
-  role: 'Player' | 'Coach' | 'Staff';
+}
+
+export interface OrganizationMembership {
+  id: string;
+  personId: string;
+  organizationId: string;
+  roleId: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface TeamMembership {
+  id: string; // Unique ID for this specific tenure/role
+  personId: string;
   teamId: string;
+  roleId: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface Event {

@@ -10,8 +10,8 @@ export default function ComponentsPage() {
         <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-200">Button Variants</h2>
         <div className="flex flex-col gap-8 w-full items-center">
           
-          {/* Light Background Examples */}
-          <div className="flex flex-col gap-8 p-8 bg-white rounded-xl shadow-sm w-full max-w-4xl">
+          {/* Light Background Examples - Force Light Theme */}
+          <div className="light-orange flex flex-col gap-8 p-8 bg-white rounded-xl shadow-sm w-full max-w-4xl">
             <h3 className="w-full text-center text-slate-500 text-lg font-medium mb-4">Light Background</h3>
             
             {/* Green Variations */}
@@ -55,8 +55,8 @@ export default function ComponentsPage() {
             </div>
           </div>
 
-          {/* Dark Background Examples */}
-          <div className="flex flex-col gap-8 p-8 bg-slate-950 rounded-xl shadow-sm w-full max-w-4xl">
+          {/* Dark Background Examples - Force Dark Theme */}
+          <div className="dark-green flex flex-col gap-8 p-8 bg-slate-950 rounded-xl shadow-sm w-full max-w-4xl">
             <h3 className="w-full text-center text-slate-400 text-lg font-medium mb-4">Dark Background</h3>
             
             {/* Green Variations */}

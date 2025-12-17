@@ -2,22 +2,10 @@
 
 import { LoginForm } from '@/components/auth/LoginForm';
 import { Logo } from '@/components/Logo';
-import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 export default function LoginPage() {
-  const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const isDark = mounted && theme?.includes('dark');
-  const metalVariant = isDark ? 'silver-dark' : 'silver';
-  const primaryColor = theme?.includes('orange') 
-    ? 'hsl(24, 95%, 53%)' 
-    : 'hsl(142, 70%, 50%)';
+  const { isDark, metalVariant, primaryColor } = useThemeColors();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">

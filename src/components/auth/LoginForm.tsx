@@ -7,24 +7,20 @@ import { MetalButton } from '@/components/ui/MetalButton';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
-import { useTheme } from 'next-themes';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { Chrome, Facebook } from 'lucide-react';
 
 export function LoginForm() {
   const { login, loginWithGoogle, loginWithFacebook } = useAuth();
   const router = useRouter();
-  const { theme } = useTheme();
+  const { isDark, metalVariant, primaryColor } = useThemeColors();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const isDark = theme?.includes('dark');
-  const metalVariant = isDark ? 'silver-dark' : 'silver';
-  const primaryColor = theme?.includes('orange') 
-    ? 'hsl(24, 95%, 53%)' 
-    : 'hsl(142, 70%, 50%)';
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

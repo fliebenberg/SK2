@@ -1,21 +1,42 @@
-import { Organization, Team, Venue, Person, Event, Game, ScoreLog } from "@/types";
+import { Organization, Team, Venue, Person, Event, Game, ScoreLog, TeamMembership, Sport, OrganizationMembership, TeamRole, OrganizationRole } from "@/types";
 
-// Initial Mock Data
-const MOCK_ORG_ID = "org-1";
+  // Initial Mock Data
+  const MOCK_ORG_ID = "org-1";
 
-// Singleton pattern to persist data across HMR in development
-class Store {
-  organizations: Organization[] = [
-    {
-      id: MOCK_ORG_ID,
-      name: "Springfield High School",
-      sportTypes: ["Soccer", "Rugby", "Netball"],
-      primaryColor: "#00ff00",
-      secondaryColor: "#000000",
-      logo: "https://api.dicebear.com/7.x/initials/svg?seed=SHS&backgroundColor=00ff00&textColor=000000",
-      shortName: "SHS",
-    },
-  ];
+  // Singleton pattern to persist data across HMR in development
+  class Store {
+    sports: Sport[] = [
+        { id: "sport-soccer", name: "Soccer" },
+        { id: "sport-rugby", name: "Rugby" },
+        { id: "sport-netball", name: "Netball" },
+        { id: "sport-hockey", name: "Hockey" },
+        { id: "sport-cricket", name: "Cricket" },
+        { id: "sport-basketball", name: "Basketball" },
+    ];
+
+    teamRoles: TeamRole[] = [
+        { id: "role-player", name: "Player" },
+        { id: "role-coach", name: "Coach" },
+        { id: "role-staff", name: "Staff" },
+        { id: "role-medic", name: "Medic" },
+    ];
+
+    organizationRoles: OrganizationRole[] = [
+        { id: "role-org-admin", name: "Admin" },
+        { id: "role-org-manager", name: "Manager" },
+    ];
+
+    organizations: Organization[] = [
+      {
+        id: MOCK_ORG_ID,
+        name: "Springfield High School",
+        supportedSportIds: ["sport-soccer", "sport-rugby", "sport-netball"],
+        primaryColor: "#00ff00",
+        secondaryColor: "#000000",
+        logo: "https://api.dicebear.com/7.x/initials/svg?seed=SHS&backgroundColor=00ff00&textColor=000000",
+        shortName: "SHS",
+      },
+    ];
 
   venues: Venue[] = [
     {
@@ -31,19 +52,21 @@ class Store {
       id: "team-1",
       name: "First XI",
       ageGroup: "U19",
-      sport: "Soccer",
+      sportId: "sport-soccer",
       organizationId: MOCK_ORG_ID,
     },
     {
       id: "team-2",
       name: "U16 A",
       ageGroup: "U16",
-      sport: "Rugby",
+      sportId: "sport-rugby",
       organizationId: MOCK_ORG_ID,
     },
   ];
 
   persons: Person[] = [];
+  teamMemberships: TeamMembership[] = [];
+  organizationMemberships: OrganizationMembership[] = [];
   events: Event[] = [];
   games: Game[] = [];
   scoreLogs: ScoreLog[] = [];
@@ -54,6 +77,16 @@ class Store {
     }
     return this.organizations[0];
   };
+
+  getSports = () => this.sports;
+  
+  getSport = (id: string) => this.sports.find(s => s.id === id);
+
+  getTeamRoles = () => this.teamRoles;
+  getTeamRole = (id: string) => this.teamRoles.find(r => r.id === id);
+
+  getOrganizationRoles = () => this.organizationRoles;
+  getOrganizationRole = (id: string) => this.organizationRoles.find(r => r.id === id);
 
   getOrganizations = () => this.organizations;
   
@@ -75,6 +108,8 @@ class Store {
     return newOrg;
   };
 
+
+
   getTeams = (organizationId?: string) => {
     if (organizationId) {
       return this.teams.filter(t => t.organizationId === organizationId);
@@ -82,14 +117,63 @@ class Store {
     return this.teams;
   };
 
-  addTeam = (team: Omit<Team, "id" | "organizationId">) => {
+  addTeam = (team: Omit<Team, "id">) => {
     const newTeam: Team = {
       ...team,
       id: `team-${Date.now()}`,
-      organizationId: MOCK_ORG_ID, // TODO: This should probably be passed in or derived from context
+      isActive: true,
     };
     this.teams = [...this.teams, newTeam];
     return newTeam;
+  };
+
+  addOrganizationMember = (personId: string, organizationId: string, roleId: string) => {
+    const existing = this.organizationMemberships.find(m => 
+      m.personId === personId && 
+      m.organizationId === organizationId && 
+      m.roleId === roleId &&
+      !m.endDate
+    );
+
+    if (existing) return existing;
+
+    const membership: OrganizationMembership = {
+      id: `org-mem-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      personId,
+      organizationId,
+      roleId,
+      startDate: new Date().toISOString(),
+    };
+    this.organizationMemberships.push(membership);
+    return membership;
+  };
+
+  getOrganizationMembers = (organizationId: string) => {
+    const memberships = this.organizationMemberships.filter(m => m.organizationId === organizationId && !m.endDate);
+    return memberships.map(m => {
+      const person = this.persons.find(p => p.id === m.personId);
+      return {
+        ...person!,
+        roleId: m.roleId,
+        roleName: this.getOrganizationRole(m.roleId)?.name,
+        membershipId: m.id,
+        startDate: m.startDate,
+        endDate: m.endDate
+      };
+    }).filter(p => p.id);
+  };
+
+  updateTeam = (id: string, data: Partial<Team>) => {
+    const index = this.teams.findIndex(t => t.id === id);
+    if (index > -1) {
+      this.teams[index] = { ...this.teams[index], ...data };
+      return this.teams[index];
+    }
+    return null;
+  };
+
+  deleteTeam = (id: string) => {
+    this.teams = this.teams.filter(t => t.id !== id);
   };
   
   getVenues = (organizationId?: string) => {
@@ -111,7 +195,23 @@ class Store {
 
   getTeam = (id: string) => this.teams.find((t) => t.id === id);
   
-  getPersons = (teamId: string) => this.persons.filter((p) => p.teamId === teamId);
+
+  
+  getPersons = () => this.persons;
+  
+  getTeamMembers = (teamId: string) => {
+    // Return people who are currently members of the team
+    const memberships = this.teamMemberships.filter(m => m.teamId === teamId && !m.endDate);
+    return memberships.map(m => {
+      const person = this.persons.find(p => p.id === m.personId);
+      return {
+        ...person!,
+        roleId: m.roleId,
+        roleName: this.getTeamRole(m.roleId)?.name,
+        membershipId: m.id
+      };
+    }).filter(p => p.id); // Valid persons only
+  };
   
   addPerson = (person: Omit<Person, "id">) => {
     const newPerson: Person = {
@@ -120,6 +220,54 @@ class Store {
     };
     this.persons = [...this.persons, newPerson];
     return newPerson;
+  };
+
+  addTeamMember = (personId: string, teamId: string, roleId: string) => {
+      // Check if already a member WITH THIS ROLE with no end date
+      const existing = this.teamMemberships.find(m => 
+        m.personId === personId && 
+        m.teamId === teamId && 
+        m.roleId === roleId &&
+        !m.endDate
+      );
+
+      if (existing) {
+        return existing;
+      }
+      // Note: We deliberately allow multiple active memberships if the role is different
+      // (e.g. Player AND Coach concurrently).
+
+      const membership: TeamMembership = {
+          id: `mem-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          personId,
+          teamId,
+          roleId,
+          startDate: new Date().toISOString(),
+      };
+      this.teamMemberships.push(membership);
+      return membership;
+  };
+
+  removeTeamMember = (membershipId: string) => {
+      const membership = this.teamMemberships.find(m => m.id === membershipId);
+      if (membership) {
+          membership.endDate = new Date().toISOString();
+      }
+  };
+
+  updatePerson = (id: string, data: Partial<Person>) => {
+    const index = this.persons.findIndex(p => p.id === id);
+    if (index > -1) {
+      this.persons[index] = { ...this.persons[index], ...data };
+      return this.persons[index];
+    }
+    return null;
+  };
+
+  deletePerson = (id: string) => {
+    // Soft delete or real delete? For now, we clean up memberships
+    this.persons = this.persons.filter(p => p.id !== id);
+    this.teamMemberships = this.teamMemberships.filter(m => m.personId !== id);
   };
 
   getGames = (organizationId?: string) => {
@@ -163,8 +311,8 @@ class Store {
   };
 }
 
-const globalForStore = globalThis as unknown as { store: Store };
+const globalForStore = globalThis as unknown as { store_v4: Store };
 
-export const store = globalForStore.store || new Store();
+export const store = globalForStore.store_v4 || new Store();
 
-if (process.env.NODE_ENV !== "production") globalForStore.store = store;
+if (process.env.NODE_ENV !== "production") globalForStore.store_v4 = store;

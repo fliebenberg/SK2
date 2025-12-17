@@ -8,6 +8,10 @@ jest.mock('@/lib/store', () => ({
   store: {
     getTeam: jest.fn(),
     getPersons: jest.fn(),
+    getSport: jest.fn(),
+    getTeamMembers: jest.fn(),
+    getTeamRole: jest.fn(),
+    getTeamRoles: jest.fn(),
   },
 }));
 
@@ -26,11 +30,17 @@ describe('TeamDetailPage', () => {
     (store.getTeam as jest.Mock).mockReturnValue({
       id: '1',
       name: 'Team A',
-      sport: 'Soccer',
+      sportId: 'sport-soccer',
       ageGroup: 'U19',
     });
-    (store.getPersons as jest.Mock).mockReturnValue([
-      { id: 'p1', name: 'John Doe', role: 'Player', teamId: '1' },
+    (store.getSport as jest.Mock).mockReturnValue({ id: 'sport-soccer', name: 'Soccer' });
+    (store.getTeamMembers as jest.Mock).mockReturnValue([
+      { membershipId: 'm1', id: 'p1', name: 'John Doe', roleId: 'role-player', teamId: '1' },
+    ]);
+    (store.getTeamRole as jest.Mock).mockReturnValue({ id: 'role-player', name: 'Player' });
+    (store.getTeamRoles as jest.Mock).mockReturnValue([
+        { id: 'role-player', name: 'Player' },
+        { id: 'role-coach', name: 'Coach' },
     ]);
 
     const params = Promise.resolve({ id: '1' });
@@ -40,6 +50,7 @@ describe('TeamDetailPage', () => {
     expect(screen.getByText('Team A')).toBeInTheDocument();
     expect(screen.getByText('Soccer • U19')).toBeInTheDocument();
     expect(screen.getByText('John Doe')).toBeInTheDocument();
+    // 'Player' comes from the resolved role name
     expect(screen.getAllByText('Player').length).toBeGreaterThan(0);
   });
 

@@ -34,9 +34,6 @@ export function SettingsMenu() {
         <DropdownMenuItem onClick={() => setTheme("dark-orange")}>
           Dark (Orange)
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("light-green")}>
-          Light (Green)
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("light-orange")}>
           Light (Orange)
         </DropdownMenuItem>

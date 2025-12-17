@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import React from 'react';
 import { cn } from '@/lib/utils';
 
@@ -6,11 +7,14 @@ interface MetalButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
   isPrimary?: boolean; // Deprecated, use variantType="outlined"
   variantType?: 'secondary' | 'outlined' | 'filled';
   glowColor?: string;
+  size?: 'default' | 'sm' | 'lg' | 'icon';
+  icon?: React.ReactNode;
+  href?: string;
   children: React.ReactNode;
 }
 
-export const MetalButton = React.forwardRef<HTMLButtonElement, MetalButtonProps>(
-  ({ className, metalVariant = 'silver', isPrimary = false, variantType, glowColor = '#FF5F1F', children, ...props }, ref) => {
+export const MetalButton = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, MetalButtonProps>(
+  ({ className, metalVariant = 'silver', isPrimary = false, variantType, glowColor = '#FF5F1F', size = 'sm', children, href, ...props }, ref) => {
     
     // Determine effective variant type
     const effectiveVariant = variantType || (isPrimary ? 'outlined' : 'secondary');
@@ -42,15 +46,8 @@ export const MetalButton = React.forwardRef<HTMLButtonElement, MetalButtonProps>
     let textColorStyle = undefined;
 
     if (effectiveVariant === 'outlined') {
-      shadowStyle = `${styles.baseShadow}, 0 0 10px ${glowColor}, 0 0 20px ${glowColor}`;
-      textShadowStyle = `
-        -1px -1px 0 #000,  
-         1px -1px 0 #000,
-        -1px  1px 0 #000,
-         1px  1px 0 #000,
-         0 0 5px ${glowColor}, 
-         0 0 10px ${glowColor}
-      `;
+      shadowStyle = `${styles.baseShadow}, 0 0 4px ${glowColor}, 0 0 8px ${glowColor}`;
+      textShadowStyle = 'none';
       textColorStyle = glowColor;
     } else if (effectiveVariant === 'filled') {
       // Filled style: Colored background with metal overlay
@@ -59,29 +56,22 @@ export const MetalButton = React.forwardRef<HTMLButtonElement, MetalButtonProps>
         backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 100%)'
       };
       // Keep base shadow for depth AND add glow
-      shadowStyle = `${styles.baseShadow}, 0 0 10px ${glowColor}, 0 0 20px ${glowColor}`;
+      shadowStyle = `${styles.baseShadow}, 0 0 5px ${glowColor}, 0 0 10px ${glowColor}`;
       // Text shadow for contrast on colored background
       textShadowStyle = '0px 1px 2px rgba(0,0,0,0.5)';
       // Text color is handled by className or default (usually passed as children or className)
       innerBackgroundStyle = { backgroundColor: 'rgba(0,0,0,0.1)' };
     }
 
-    return (
-      <button
-        ref={ref}
-        className={cn(
-          'relative flex items-center justify-center rounded-xl font-bold tracking-wider px-8 py-4 transition-all duration-100',
-          // styles.outer is empty now, background handled by style
-          styles.active,
-          className
-        )}
-        style={{ 
-          fontFamily: 'var(--font-orbitron)',
-          boxShadow: shadowStyle,
-          ...backgroundStyle
-        }}
-        {...props}
-      >
+    const sizeClasses = {
+      default: 'px-8 py-4',
+      sm: 'px-4 py-2 text-sm',
+      lg: 'px-10 py-6 text-lg',
+      icon: 'h-10 w-10 p-2',
+    };
+
+    const content = (
+      <>
         {/* Brushed metal texture overlay */}
         <div className="absolute inset-0 rounded-xl opacity-20 bg-[url('https://www.transparenttextures.com/patterns/brushed-alum.png')] pointer-events-none" />
         
@@ -102,8 +92,54 @@ export const MetalButton = React.forwardRef<HTMLButtonElement, MetalButtonProps>
             color: textColorStyle
           }}
         >
-          {children}
+          {props.icon ? (
+            <div className="flex items-center gap-2">
+              {props.icon}
+              <span>{children}</span>
+            </div>
+          ) : (
+            children
+          )}
         </span>
+      </>
+    );
+
+    const commonClasses = cn(
+      'relative flex items-center justify-center rounded-xl font-bold tracking-wider transition-all duration-100 whitespace-nowrap',
+      sizeClasses[size],
+      styles.active,
+      className
+    );
+
+    const commonStyles = {
+      fontFamily: 'var(--font-orbitron)',
+      boxShadow: shadowStyle,
+      ...backgroundStyle
+    };
+
+    if (href) {
+      return (
+        <Link
+          href={href}
+          className={commonClasses}
+          style={commonStyles}
+          // @ts-ignore - ref types mismatch is tricky with polymorphic components without complex generics
+          ref={ref as any} 
+        >
+          {content}
+        </Link>
+      );
+    }
+
+    return (
+      <button
+        // @ts-ignore
+        ref={ref}
+        className={commonClasses}
+        style={commonStyles}
+        {...props}
+      >
+        {content}
       </button>
     );
   }

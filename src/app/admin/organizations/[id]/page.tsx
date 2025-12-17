@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { MetalButton } from "@/components/ui/MetalButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { store } from "@/lib/store";
 import { Users, Trophy, MapPin, Calendar } from "lucide-react";
@@ -32,7 +32,9 @@ export default async function OrganizationDetailsPage({ params }: PageProps) {
       description: "Manage teams and squads.",
       icon: Trophy,
       href: `/admin/organizations/${id}/teams`,
-      count: store.getTeams(id).length,
+      count: ((org.supportedSportIds || []).length === 1 
+        ? store.getTeams(id).filter(t => t.sportId === (org.supportedSportIds || [])[0])
+        : store.getTeams(id)).filter(t => (t.isActive ?? true)).length,
     },
     {
       title: "Venues",
@@ -52,7 +54,7 @@ export default async function OrganizationDetailsPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <OrgDetailsHeader organization={org} />
+      <OrgDetailsHeader organization={org} readOnly={true} />
 
       <div className="grid gap-6 md:grid-cols-2">
         {managementSections.map((section) => (
@@ -70,9 +72,15 @@ export default async function OrganizationDetailsPage({ params }: PageProps) {
                 </p>
                 <div className="flex items-center justify-between">
                     <div className="text-2xl font-bold">{section.count}</div>
-                    <Button asChild variant="secondary">
-                        <Link href={section.href}>Manage</Link>
-                    </Button>
+                    <Link href={section.href}>
+                        <MetalButton 
+                            variantType="outlined" 
+                            size="sm" 
+                            glowColor="hsl(var(--primary))"
+                        >
+                            Manage
+                        </MetalButton>
+                    </Link>
                 </div>
               </div>
             </CardContent>

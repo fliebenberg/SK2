@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { MobileSidebar } from "@/components/admin/AdminSidebar";
-import { SettingsMenu } from "@/components/SettingsMenu";
 import { UserMenu } from "@/components/UserMenu";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -33,7 +32,7 @@ export function Navbar() {
       <div className="flex h-16 items-center px-4 container mx-auto">
         <Link href="/" className="flex items-center gap-2 font-semibold text-lg mr-6">
           <Logo size="sm" metalVariant={metalVariant} glowColor="hsl(var(--primary))" />
-          <span>ScoreKeeper</span>
+          <span className="hidden md:inline">ScoreKeeper</span>
         </Link>
         
         {/* Desktop Navigation - Hide on Admin routes */}
@@ -52,9 +51,6 @@ export function Navbar() {
         )}
 
         <div className="ml-auto flex items-center gap-4">
-          <SettingsMenu />
-          <UserMenu />
-          
           {/* Mobile Menu Button - Public routes */}
           {!pathname?.startsWith('/admin') && (
             <button 
@@ -72,6 +68,8 @@ export function Navbar() {
               <MobileSidebar />
             </div>
           )}
+          
+          <UserMenu />
         </div>
       </div>
 

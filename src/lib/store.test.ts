@@ -15,8 +15,9 @@ describe('Store Logic', () => {
     const initialCount = store.getTeams().length;
     const newTeam = store.addTeam({
       name: 'Test Team',
-      sport: 'Tennis',
-      ageGroup: 'U14'
+      sportId: 'sport-tennis',
+      ageGroup: 'U14',
+      organizationId: 'org-test'
     });
 
     expect(newTeam.id).toBeDefined();

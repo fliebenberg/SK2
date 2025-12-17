@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -17,7 +17,7 @@ import {
   Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,102 +26,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState, useEffect } from "react";
-import { store } from "@/lib/store";
+import { useState } from "react";
 import { Organization } from "@/types";
-import { getOrganizationsAction } from "@/app/actions";
-
-interface SidebarItem {
-    title: string;
-    href: string;
-    icon: React.ElementType;
-}
+import { useAdminNavigation } from "@/hooks/useAdminNavigation";
 
 interface AdminSidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function AdminSidebar({ className }: AdminSidebarProps) {
-  const pathname = usePathname();
   const router = useRouter();
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
-
-  useEffect(() => {
-    const fetchOrgs = async () => {
-        const orgs = await getOrganizationsAction();
-        setOrganizations(orgs);
-    
-        const match = pathname.match(/\/admin\/organizations\/([^\/]+)/);
-        if (match) {
-          const orgId = match[1];
-          if (orgId === 'new') {
-            setCurrentOrg(null);
-          } else {
-            const found = orgs.find(o => o.id === orgId);
-            if (found) setCurrentOrg(found);
-          }
-        } else {
-            setCurrentOrg(null);
-        }
-    };
-
-    fetchOrgs();
-
-    const handleOrgUpdate = () => {
-        fetchOrgs();
-    };
-
-    window.addEventListener('organization-updated', handleOrgUpdate);
-
-    return () => {
-        window.removeEventListener('organization-updated', handleOrgUpdate);
-    };
-  }, [pathname]);
+  const { pathname, organizations, currentOrg, sidebarItems } = useAdminNavigation();
 
   const handleOrgChange = (org: Organization) => {
       router.push(`/admin/organizations/${org.id}`);
   };
-
-  const getSidebarItems = (): SidebarItem[] => {
-      if (currentOrg) {
-          return [
-              {
-                  title: "Dashboard",
-                  href: `/admin/organizations/${currentOrg.id}`,
-                  icon: LayoutDashboard,
-              },
-              {
-                  title: "People",
-                  href: `/admin/organizations/${currentOrg.id}/people`,
-                  icon: Users,
-              },
-              {
-                  title: "Teams",
-                  href: `/admin/organizations/${currentOrg.id}/teams`,
-                  icon: Trophy,
-              },
-              {
-                  title: "Venues",
-                  href: `/admin/organizations/${currentOrg.id}/venues`,
-                  icon: MapPin,
-              },
-              {
-                  title: "Events",
-                  href: `/admin/organizations/${currentOrg.id}/events`,
-                  icon: Calendar,
-              },
-          ];
-      }
-
-      return [
-          {
-              title: "Dashboard",
-              href: "/admin",
-              icon: LayoutDashboard,
-          },
-      ];
-  };
-
-  const items = getSidebarItems();
 
   return (
     <div className={cn("pb-12 h-full flex flex-col", className)}>
@@ -129,7 +46,16 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
         <div className="px-3 py-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-full justify-between mb-4 h-auto py-2">
+              <Button 
+                variant="outline" 
+                className="w-full justify-between mb-4 h-auto py-2"
+                style={currentOrg ? {
+                    backgroundColor: currentOrg.primaryColor || undefined,
+                    borderColor: currentOrg.secondaryColor || undefined,
+                    borderWidth: '2px',
+                    color: '#ffffff'
+                } : undefined}
+              >
                 <div className="flex items-center gap-2 truncate">
                     {currentOrg?.logo ? (
                         <div className="w-6 h-6 rounded-md overflow-hidden border border-border bg-background flex-shrink-0">
@@ -138,7 +64,7 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
                     ) : (
                         <Building2 className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                     )}
-                    <span className="truncate">
+                    <span className="truncate font-medium drop-shadow-md">
                         {currentOrg ? currentOrg.name : "Select Organization"}
                     </span>
                 </div>
@@ -158,7 +84,7 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
                       borderColor: org.secondaryColor || 'transparent',
                       borderWidth: '2px',
                       borderStyle: 'solid',
-                      color: '#ffffff' // Assuming dark primary colors for now, or we could calculate contrast
+                      color: '#ffffff'
                   }}
                 >
                   <div className="flex items-center gap-2">
@@ -188,7 +114,7 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
             Admin
           </h2>
           <div className="space-y-1">
-            {items.map((item) => (
+            {sidebarItems.map((item) => (
               <Button
                 key={item.href}
                 variant={pathname === item.href ? "secondary" : "ghost"}
@@ -226,84 +152,8 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
 
 export function MobileSidebar() {
     const [open, setOpen] = useState(false);
-    const pathname = usePathname();
     const router = useRouter();
-    const [organizations, setOrganizations] = useState<Organization[]>([]);
-    const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
-
-    useEffect(() => {
-    const fetchOrgs = async () => {
-        const orgs = await getOrganizationsAction();
-        setOrganizations(orgs);
-    
-        const match = pathname.match(/\/admin\/organizations\/([^\/]+)/);
-        if (match) {
-          const orgId = match[1];
-          if (orgId === 'new') {
-            setCurrentOrg(null);
-          } else {
-            const found = orgs.find(o => o.id === orgId);
-            if (found) setCurrentOrg(found);
-          }
-        } else {
-            setCurrentOrg(null);
-        }
-    };
-
-    fetchOrgs();
-
-    const handleOrgUpdate = () => {
-        fetchOrgs();
-    };
-
-    window.addEventListener('organization-updated', handleOrgUpdate);
-
-    return () => {
-        window.removeEventListener('organization-updated', handleOrgUpdate);
-    };
-  }, [pathname]);
-
-    const getSidebarItems = (): SidebarItem[] => {
-        if (currentOrg) {
-            return [
-                {
-                    title: "Dashboard",
-                    href: `/admin/organizations/${currentOrg.id}`,
-                    icon: LayoutDashboard,
-                },
-                {
-                    title: "People",
-                    href: `/admin/organizations/${currentOrg.id}/people`,
-                    icon: Users,
-                },
-                {
-                    title: "Teams",
-                    href: `/admin/organizations/${currentOrg.id}/teams`,
-                    icon: Trophy,
-                },
-                {
-                    title: "Venues",
-                    href: `/admin/organizations/${currentOrg.id}/venues`,
-                    icon: MapPin,
-                },
-                {
-                    title: "Events",
-                    href: `/admin/organizations/${currentOrg.id}/events`,
-                    icon: Calendar,
-                },
-            ];
-        }
-  
-        return [
-            {
-                title: "Dashboard",
-                href: "/admin",
-                icon: LayoutDashboard,
-            },
-        ];
-    };
-
-    const items = getSidebarItems();
+    const { pathname, organizations, currentOrg, sidebarItems } = useAdminNavigation();
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>
@@ -314,10 +164,23 @@ export function MobileSidebar() {
                 </Button>
             </SheetTrigger>
             <SheetContent side="left" className="pr-0 flex flex-col h-full">
+                <SheetTitle className="sr-only">Mobile Navigation Menu</SheetTitle>
+                <SheetDescription className="sr-only">
+                    Navigation menu for accessing administration features.
+                </SheetDescription>
                 <div className="px-3 py-2 flex-1">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="w-full justify-between mb-4 h-auto py-2">
+                        <Button 
+                            variant="outline" 
+                            className="w-full justify-between mb-4 h-auto py-2"
+                            style={currentOrg ? {
+                                backgroundColor: currentOrg.primaryColor || undefined,
+                                borderColor: currentOrg.secondaryColor || undefined,
+                                borderWidth: '2px',
+                                color: '#ffffff'
+                            } : undefined}
+                        >
                             <div className="flex items-center gap-2 truncate">
                                 {currentOrg?.logo ? (
                                     <div className="w-6 h-6 rounded-full overflow-hidden border border-border bg-background flex-shrink-0">
@@ -326,7 +189,7 @@ export function MobileSidebar() {
                                 ) : (
                                     <Building2 className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                                 )}
-                                <span className="truncate">
+                                <span className="truncate font-medium drop-shadow-md">
                                     {currentOrg ? currentOrg.name : "Select Organization"}
                                 </span>
                             </div>
@@ -382,7 +245,7 @@ export function MobileSidebar() {
                         Admin
                     </h2>
                     <div className="space-y-1">
-                        {items.map((item) => (
+                        {sidebarItems.map((item) => (
                             <Button
                                 key={item.href}
                                 variant={pathname === item.href ? "secondary" : "ghost"}

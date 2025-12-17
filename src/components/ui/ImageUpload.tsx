@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useId } from 'react';
 import Cropper, { Point, Area } from 'react-easy-crop';
 import getCroppedImg from '@/lib/cropImage';
 import { MetalButton } from '@/components/ui/MetalButton';
 import { Slider } from '@/components/ui/slider';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Upload, X, Check, Image as ImageIcon } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Upload, X, Check, Image as ImageIcon, Pencil } from 'lucide-react';
+
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 interface ImageUploadProps {
   onChange: (base64: string) => void;
@@ -17,20 +18,14 @@ interface ImageUploadProps {
 }
 
 export function ImageUpload({ onChange, value, className, minimal = false }: ImageUploadProps) {
-  const { theme } = useTheme();
+  const { isDark, metalVariant, primaryColor } = useThemeColors();
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(value || null);
-  const uniqueId = `image-upload-${Math.random().toString(36).substr(2, 9)}`;
-
-  const isDark = theme?.includes('dark');
-  const metalVariant = isDark ? 'silver-dark' : 'silver';
-  const primaryColor = theme?.includes('orange') 
-    ? 'hsl(24, 95%, 53%)' 
-    : 'hsl(142, 70%, 50%)';
+  const uniqueId = useId();
 
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -90,6 +85,15 @@ export function ImageUpload({ onChange, value, className, minimal = false }: Ima
                 ) : (
                 <ImageIcon className={`${minimal ? "w-1/2 h-1/2" : "w-8 h-8"} text-muted-foreground`} />
                 )}
+                
+                {minimal && (
+                  <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                    <div className="bg-background/80 text-foreground text-xs font-semibold px-2 py-1 rounded shadow-sm flex items-center gap-1.5">
+                       <Pencil className="w-3 h-3" />
+                       Edit
+                    </div>
+                  </div>
+                )}
             </div>
           </label>
           
@@ -141,6 +145,9 @@ export function ImageUpload({ onChange, value, className, minimal = false }: Ima
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Crop Image</DialogTitle>
+            <DialogDescription className="sr-only">
+              Adjust the crop area of your uploaded image.
+            </DialogDescription>
           </DialogHeader>
           
           <div className="relative w-full h-64 bg-black/5 rounded-lg overflow-hidden mt-4">

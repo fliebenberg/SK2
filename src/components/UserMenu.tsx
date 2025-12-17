@@ -9,14 +9,19 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogIn, UserPlus, LogOut, Settings } from 'lucide-react';
+import { User, LogIn, UserPlus, LogOut, Settings, Palette } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 
 export function UserMenu() {
   const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
+  const { setTheme } = useTheme();
 
   const handleLogout = () => {
     logout();
@@ -88,11 +93,11 @@ export function UserMenu() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-48 md:w-56">
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user?.name || 'User'}</p>
-            <p className="text-xs leading-none text-muted-foreground">
+            <p className="text-sm font-medium leading-none truncate">{user?.name || 'User'}</p>
+            <p className="text-xs leading-none text-muted-foreground truncate">
               {user?.email || ''}
             </p>
           </div>
@@ -110,6 +115,23 @@ export function UserMenu() {
             <span>Settings</span>
           </Link>
         </DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger className="cursor-pointer flex items-center gap-2">
+            <Palette className="h-4 w-4" />
+            <span>Theme</span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent sideOffset={2} alignOffset={-5} collisionPadding={16}>
+            <DropdownMenuItem onClick={() => setTheme("dark-green")} className="cursor-pointer">
+              Dark (Green)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme("dark-orange")} className="cursor-pointer">
+              Dark (Orange)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme("light-orange")} className="cursor-pointer">
+              Light (Orange)
+            </DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleLogout}
